@@ -11,20 +11,28 @@ load_dotenv()
 
 apply_crystal_style()
 
-
 st.set_page_config(page_title="Crystal_City_OS", layout="wide")
 
 
 # --- 1. CONNECTION (CACHED) ---
 @st.cache_resource
 def get_qbt_client():
+    host = os.getenv("QBITTORRENT_NAME")
     client = qbittorrentapi.Client(
-        host=os.getenv("QBITTORRENT_NAME"),
+        host=host,
         username=os.getenv("QBITTORRENT_USER"),
         password=os.getenv("QBITTORRENT_PASSWORD"),
+        VERIFY_WEBUI_CERTIFICATE=False,
     )
-    client.auth_log_in()
-    return client
+    try:
+        client.auth_log_in()
+        return client
+    except qbittorrentapi.LoginFailed as e:
+        st.error(f"Vault Access Denied: Incorrect credentials for {host}")
+        raise e
+    except Exception as e:
+        st.error(f"Grid Connection Offline: Could not reach {host}. Check your Proxy/IP.")
+        raise e
 
 
 # --- 2. DATA FETCHING LOGIC ---

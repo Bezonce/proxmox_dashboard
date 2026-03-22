@@ -11,8 +11,8 @@ load_dotenv()
 
 # --- Service Definitions --- git commit -m "First version of the dashboard with working
 services = [
-    {"name": "Torrent", "url": os.getenv("MEDIA_LINK"), "icon": "✧"},
-    {"name": "Jellyfin", "url": os.getenv("TORRENT_LINK"), "icon": "◈"},
+    {"name": "Jellyfin", "url": os.getenv("MEDIA_LINK"), "icon": "◈"},
+    {"name": "Torrent", "url": os.getenv("TORRENT_LINK"), "icon": "✧"},
     {"name": "Rozi", "url": os.getenv("NAS_LINK"), "icon": "✦"},
     {"name": "Camera", "url": os.getenv("CAMERA_LINK"), "icon": "◎"},
     {"name": "Folders", "url": os.getenv("TORRENT_FOLDERS_LINK"), "icon": "◮"},
