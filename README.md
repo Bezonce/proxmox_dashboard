@@ -20,10 +20,10 @@ My Take on a proxmox dashboard
 5. Role: PVEAuditor (This is "Read Only" — perfect for a dashboard).
 
 ## For the links to work add them to the .env file 
-`
+```.env
 MEDIA_LINK=""
 TORRENT_LINK=""
 NAS_LINK=""
 CAMERA_LINK=""
 TORRENT_FOLDERS_LINK=""
-`
+```
