@@ -108,16 +108,17 @@ def delete_torrents_dialog(qbt_client, edited_df):
 
 # --- 4. MAIN APP ---
 st.set_page_config(layout="wide")
-qbt_client = get_qbt_client()
+try:
+    qbt_client = get_qbt_client()
+except Exception:
+    st.stop()  # the error is already on the page; don't show a traceback
 
 # Initialize data if it doesn't exist
 if "df" not in st.session_state:
     update_torrent_data(qbt_client)
 
 if st.session_state.df is not None:
-    st.subheader(
-        f"Active Transfers: {len(st.session_state.df)} torrents, {st.session_state.df.select(pl.col('Size GB').sum()).item():.2f} GB"
-    )
+    st.subheader(f"Active Transfers: {len(st.session_state.df)} torrents, {st.session_state.df.select(pl.col('Size GB').sum()).item():.2f} GB")
 
     # TOOLBAR
     col1, col2, col3 = st.columns([1, 1, 1])
@@ -130,9 +131,7 @@ if st.session_state.df is not None:
                 "Select",
                 width="small",
             ),
-            "Progress": st.column_config.ProgressColumn(
-                "Progress", min_value=0, max_value=1, format="%.1f%%", color="#7FFFD4"
-            ),
+            "Progress": st.column_config.ProgressColumn("Progress", min_value=0, max_value=1, format="%.1f%%", color="#7FFFD4"),
             "ID": None,
         },
         hide_index=True,
