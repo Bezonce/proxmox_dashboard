@@ -104,12 +104,12 @@ SERVICES = [
         _service("folders", "Folders", "◮", INFRA, env("TORRENT_FOLDERS_LINK")),
         # /api/auth answers 401 without a session, which still means "up" and costs no API seat
         _service("pihole", "Pi-hole", "⊘", INFRA, env("PIHOLE_LINK", "http://pihole.home.arpa"), f"{api_base('PIHOLE')}/api/auth"),
+        # 403 without login still means "up"
+        _service("torrent", "Torrent", "✧", INFRA, env("TORRENT_LINK", "http://torrent.home.arpa"), f"{_qbittorrent}/api/v2/app/version"),
         # --- Arr stack
         _service("radarr", "Radarr", "◬", ARR, env("RADARR_LINK", "http://radarr.home.arpa"), f"{api_base('RADARR')}/ping"),
         _service("sonarr", "Sonarr", "◐", ARR, env("SONARR_LINK", "http://sonarr.home.arpa"), f"{api_base('SONARR')}/ping"),
         _service("prowlarr", "Prowlarr", "✥", ARR, env("PROWLARR_LINK", "http://prowlarr.home.arpa"), f"{api_base('PROWLARR')}/ping"),
-        # 403 without login still means "up"
-        _service("torrent", "Torrent", "✧", ARR, env("TORRENT_LINK", "http://torrent.home.arpa"), f"{_qbittorrent}/api/v2/app/version"),
     )
     if svc.link.startswith(("http://", "https://"))
 ]

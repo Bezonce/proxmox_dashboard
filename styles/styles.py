@@ -164,7 +164,7 @@ def apply_crystal_style():
             box-shadow: 0 8px 32px rgba(30, 144, 255, 0.2);
         }
 
-        div[data-testid="stMetric"] {
+        div[data-testid="stMetric"], .crystal-tile {
             background: rgba(18, 26, 59, 0.45);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -200,12 +200,28 @@ def apply_crystal_style():
             font-weight: 700;
             margin-bottom: 4px;
         }
-        .crystal-big {
+        div[data-testid="stMetric"], .crystal-tile { min-height: 124px; }
+        .crystal-tile, .crystal-tile * { font-family: 'Jura', sans-serif; }
+        .crystal-tile-label {
+            color: #7FFFD4;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.75rem;
+            margin-bottom: 4px;
+        }
+        .crystal-tile-value {
             color: #FFFFFF;
-            font-size: 1.9rem;
-            line-height: 1.3;
+            font-size: 2.25rem;
+            line-height: 1.2;
             text-shadow: 0 0 10px rgba(127, 255, 212, 0.6);
         }
+        .crystal-tile .crystal-bar { margin: 6px 0 2px; }
+        .crystal-tile-detail {
+            color: rgba(224, 255, 255, 0.75);
+            letter-spacing: 1px;
+            font-size: 0.875rem;
+        }
+
         .crystal-muted {
             color: rgba(224, 255, 255, 0.7);
             font-size: 0.85rem;

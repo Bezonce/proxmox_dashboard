@@ -74,11 +74,6 @@ def muted(text: str, center: bool = False) -> None:
     _html(f'<div class="crystal-muted{" crystal-center" if center else ""}">{escape(text)}</div>')
 
 
-def big(text: str) -> None:
-    """A large glowing value, like a metric tile's, for use inside a panel."""
-    _html(f'<div class="crystal-big">{escape(text)}</div>')
-
-
 def offline(name: str, error: str) -> None:
     """How a service that can't be read shows up: one line, never a traceback."""
     _html(f'<div class="crystal-offline">◌ {escape(name)} · {escape(error)}</div>')
@@ -118,6 +113,18 @@ def metric(name: str, value, detail: str | None = None, error: str | None = None
         st.metric(name, "—", help=f"Unavailable: {error}")
     else:
         st.metric(name, value, delta=detail, delta_color="off", delta_arrow="off")
+
+
+def tile(name: str, value: str, detail: str = "", used_pct: float | None = None) -> None:
+    """A status card that looks like metric(), with an optional usage bar under the value."""
+    progress = _bar(used_pct) if used_pct is not None else ""
+    _html(
+        '<div class="crystal-tile">'
+        f'<div class="crystal-tile-label">{escape(name)}</div>'
+        f'<div class="crystal-tile-value">{escape(value)}</div>{progress}'
+        f'<div class="crystal-tile-detail">{escape(detail)}</div>'
+        "</div>"
+    )
 
 
 def divider() -> None:
