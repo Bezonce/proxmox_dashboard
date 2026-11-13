@@ -100,3 +100,5 @@ PIHOLE = {
         {"name": "192.168.0.60", "ip": "192.168.0.60", "queries": 4000},
     ],
 }
+
+TORRENT_DISK = {"free": 2.6e12, "torrents": 64, "torrent_size": 6.3e11}

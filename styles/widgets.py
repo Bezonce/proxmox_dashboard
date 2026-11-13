@@ -66,12 +66,17 @@ def panel(key: str):
     return st.container(key=f"panel_{key}")
 
 
-def label(text: str) -> None:
-    _html(f'<div class="crystal-label">{escape(text)}</div>')
+def label(text: str, center: bool = False) -> None:
+    _html(f'<div class="crystal-label{" crystal-center" if center else ""}">{escape(text)}</div>')
 
 
 def muted(text: str, center: bool = False) -> None:
     _html(f'<div class="crystal-muted{" crystal-center" if center else ""}">{escape(text)}</div>')
+
+
+def big(text: str) -> None:
+    """A large glowing value, like a metric tile's, for use inside a panel."""
+    _html(f'<div class="crystal-big">{escape(text)}</div>')
 
 
 def offline(name: str, error: str) -> None:

@@ -200,6 +200,12 @@ def apply_crystal_style():
             font-weight: 700;
             margin-bottom: 4px;
         }
+        .crystal-big {
+            color: #FFFFFF;
+            font-size: 1.9rem;
+            line-height: 1.3;
+            text-shadow: 0 0 10px rgba(127, 255, 212, 0.6);
+        }
         .crystal-muted {
             color: rgba(224, 255, 255, 0.7);
             font-size: 0.85rem;

@@ -73,3 +73,23 @@ def test_formatting():
     assert widgets.fmt_duration(3720) == "1h 2m"
     assert widgets.fmt_count(48000) == "48 000"
     assert widgets.percent(5, 0) == 0.0
+
+
+def test_every_service_is_in_a_group():
+    assert {svc.group for svc in registry.SERVICES} <= set(registry.GROUPS)
+    media = [svc.key for svc in registry.SERVICES if svc.group == registry.MEDIA]
+    assert media[:5] == ["jellyfin", "immich", "books", "jellyseerr", "camera"]
+
+
+def test_file_links_are_hidden(monkeypatch):
+    import importlib
+
+    try:
+        monkeypatch.setenv("TORRENT_FOLDERS_LINK", "file://192.168.0.4/torrent/")
+        assert "folders" not in [svc.key for svc in importlib.reload(registry).SERVICES]
+        monkeypatch.setenv("TORRENT_FOLDERS_LINK", "http://files.home.arpa")
+        infra = [svc.key for svc in importlib.reload(registry).SERVICES if svc.group == registry.INFRA]
+        assert infra == ["nas", "proxmox", "folders", "pihole"]
+    finally:
+        monkeypatch.undo()
+        importlib.reload(registry)  # leave the module as the other tests expect it

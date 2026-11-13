@@ -58,47 +58,60 @@ class Service:
     key: str  # stable id: health lookups and CSS keys
     name: str  # label on the home grid
     icon: str  # glyph in front of the label
+    group: str  # column on the home grid, one of GROUPS
     link: str  # what the button opens
     health_url: str  # polled for up/down, "" = not checked
 
 
-def _service(key: str, name: str, icon: str, link: str, health_url: str = "") -> Service:
+def _service(key: str, name: str, icon: str, group: str, link: str, health_url: str = "") -> Service:
     if not health_url and link.startswith(("http://", "https://")):
         health_url = link  # no API to ping: check the page the button opens
-    return Service(key, name, icon, link, health_url)
+    return Service(key, name, icon, group, link, health_url)
 
 
-_qbittorrent = base_url(env("QBITTORRENT_NAME"))
+_qbittorrent = base_url(env("QBITTORRENT_NAME", "torrent.home.arpa"))
 _proxmox = proxmox_host()
 
-# Order = order on the home grid (three per row). A service without a link is left out.
+MEDIA, INFRA, ARR = "Media", "Infrastructure", "Arr stack"
+GROUPS = [MEDIA, INFRA, ARR]  # the home grid's columns, left to right
+
+# Links use the Caddy names (http://<name>.home.arpa); .env can override each one.
+# Order within a group = order in its column. A service without a web link is left out.
 SERVICES = [
     svc
     for svc in (
-        _service("jellyfin", "Jellyfin", "◈", env("MEDIA_LINK", "http://watch.home.arpa"), f"{api_base('JELLYFIN')}/health"),
+        # --- Media
+        _service("jellyfin", "Jellyfin", "◈", MEDIA, env("MEDIA_LINK", "http://watch.home.arpa"), f"{api_base('JELLYFIN')}/health"),
+        _service("immich", "Photos", "✺", MEDIA, env("IMMICH_LINK", "http://photos.home.arpa"), f"{api_base('IMMICH')}/api/server/ping"),
+        _service("books", "Books", "▤", MEDIA, env("BOOKS_LINK", "http://books.home.arpa")),  # Calibre-Web
         _service(
-            "torrent",
-            "Torrent",
-            "✧",
-            env("TORRENT_LINK", "http://torrent.home.arpa"),
-            f"{_qbittorrent}/api/v2/app/version" if _qbittorrent else "",  # 403 without login still means "up"
+            "jellyseerr",
+            "Requests",
+            "❖",
+            MEDIA,
+            env("JELLYSEERR_LINK", "http://requests.home.arpa"),
+            f"{api_base('JELLYSEERR')}/api/v1/status",
         ),
-        _service("nas", "Rozi", "✦", env("NAS_LINK", "http://rozi.home.arpa")),
-        _service("camera", "Camera", "◎", env("CAMERA_LINK", "https://192.168.0.2:5001")),
-        _service("folders", "Folders", "◮", env("TORRENT_FOLDERS_LINK")),
-        _service(
-            "jellyseerr", "Requests", "❖", env("JELLYSEERR_LINK", "http://requests.home.arpa"), f"{api_base('JELLYSEERR')}/api/v1/status"
-        ),
-        _service("immich", "Photos", "✺", env("IMMICH_LINK", "http://photos.home.arpa"), f"{api_base('IMMICH')}/api/server/ping"),
-        _service("radarr", "Radarr", "◬", env("RADARR_LINK", "http://radarr.home.arpa"), f"{api_base('RADARR')}/ping"),
-        _service("sonarr", "Sonarr", "◐", env("SONARR_LINK", "http://sonarr.home.arpa"), f"{api_base('SONARR')}/ping"),
-        _service("prowlarr", "Prowlarr", "✥", env("PROWLARR_LINK", "http://prowlarr.home.arpa"), f"{api_base('PROWLARR')}/ping"),
-        # /api/auth answers 401 without a session, which still means "up" and costs no API seat
-        _service("pihole", "Pi-hole", "⊘", env("PIHOLE_LINK", "http://pihole.home.arpa"), f"{api_base('PIHOLE')}/api/auth"),
+        # Surveillance Station on the NAS (the camera itself is on an isolated network)
+        _service("camera", "Camera", "◎", MEDIA, env("CAMERA_LINK", "http://rozi.home.arpa/webman/3rdparty/SurveillanceStation/")),
+        # --- Infrastructure
+        _service("nas", "Rozi", "✦", INFRA, env("NAS_LINK", "http://rozi.home.arpa")),
         # The web UI root answers at once; unauthenticated API calls are delayed 3 s by Proxmox
-        _service("proxmox", "Proxmox", "▣", env("PROXMOX_LINK", "http://proxmox.home.arpa"), f"https://{_proxmox}/" if _proxmox else ""),
+        _service(
+            "proxmox", "Proxmox", "▣", INFRA, env("PROXMOX_LINK", "http://proxmox.home.arpa"), f"https://{_proxmox}/" if _proxmox else ""
+        ),
+        # Only shown for a web address: browsers refuse to open file:// links from a web page
+        _service("folders", "Folders", "◮", INFRA, env("TORRENT_FOLDERS_LINK")),
+        # /api/auth answers 401 without a session, which still means "up" and costs no API seat
+        _service("pihole", "Pi-hole", "⊘", INFRA, env("PIHOLE_LINK", "http://pihole.home.arpa"), f"{api_base('PIHOLE')}/api/auth"),
+        # --- Arr stack
+        _service("radarr", "Radarr", "◬", ARR, env("RADARR_LINK", "http://radarr.home.arpa"), f"{api_base('RADARR')}/ping"),
+        _service("sonarr", "Sonarr", "◐", ARR, env("SONARR_LINK", "http://sonarr.home.arpa"), f"{api_base('SONARR')}/ping"),
+        _service("prowlarr", "Prowlarr", "✥", ARR, env("PROWLARR_LINK", "http://prowlarr.home.arpa"), f"{api_base('PROWLARR')}/ping"),
+        # 403 without login still means "up"
+        _service("torrent", "Torrent", "✧", ARR, env("TORRENT_LINK", "http://torrent.home.arpa"), f"{_qbittorrent}/api/v2/app/version"),
     )
-    if svc.link
+    if svc.link.startswith(("http://", "https://"))
 ]
 
 _BY_KEY = {svc.key: svc for svc in SERVICES}

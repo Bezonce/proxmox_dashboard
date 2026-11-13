@@ -2,28 +2,65 @@ import datetime as dt
 
 import streamlit as st
 
-from services import media, pihole, proxmox
+from services import media, pihole, proxmox, torrent
 from services.health import DOWN, UP, check_all, fetch_if_up
-from services.registry import SERVICES
+from services.registry import GROUPS, INFRA, SERVICES
 from styles.styles import apply_crystal_style
-from styles.widgets import app_version, divider, fmt_bytes, fmt_count, fmt_duration, metric, muted, percent
+from styles.widgets import (
+    app_version,
+    big,
+    divider,
+    fmt_bytes,
+    fmt_count,
+    fmt_duration,
+    label,
+    metric,
+    muted,
+    offline,
+    panel,
+    percent,
+    usage_bar,
+)
 
 apply_crystal_style()
+
+
+def torrent_disk():
+    """Free space on the HDD pool the torrents download to."""
+    disk, error = fetch_if_up("torrent", torrent.disk)
+    with panel("torrent_disk"):
+        label("Torrent disk")
+        if error:
+            offline("qBittorrent", error)
+            return
+        # qBittorrent knows the free space; the pool's size comes from Radarr, which sees the same pool
+        pools, _ = fetch_if_up("radarr", media.disks)
+        pool = max(pools or [], key=lambda candidate: candidate["total"], default=None)
+        big(f"{fmt_bytes(disk['free'])} free")
+        if pool:
+            used = pool["total"] - disk["free"]
+            usage_bar("used", used, pool["total"])
+        muted(f"{disk['torrents']} torrents · {fmt_bytes(disk['torrent_size'])}")
 
 
 @st.fragment(run_every="60s")
 def service_grid():
     health = check_all()
 
-    # --- Grid Layout: three columns, filled column by column ---
-    columns = st.columns(3, gap="large")
-    for index, svc in enumerate(SERVICES):
-        with columns[index % 3]:
-            if index >= 3:
+    # --- Grid Layout: one column per group ---
+    columns = st.columns(len(GROUPS), gap="large")
+    for column, group in zip(columns, GROUPS):
+        with column:
+            label(group, center=True)
+            for index, svc in enumerate(svc for svc in SERVICES if svc.group == group):
+                if index:
+                    st.markdown("<br>", unsafe_allow_html=True)
+                state, detail = health.get(svc.key, ("unknown", ""))
+                with st.container(key=f"status_{state}_{svc.key}"):
+                    st.link_button(label=f"{svc.icon} {svc.name}", url=svc.link, help=detail, width="stretch")
+            if group == INFRA:
                 st.markdown("<br>", unsafe_allow_html=True)
-            state, detail = health.get(svc.key, ("unknown", ""))
-            with st.container(key=f"status_{state}_{svc.key}"):
-                st.link_button(label=f"{svc.icon} {svc.name}", url=svc.link, help=detail, width="stretch")
+                torrent_disk()
 
     checked = [state for state, _ in health.values() if state in (UP, DOWN)]
     down = [svc.name for svc in SERVICES if health.get(svc.key, ("",))[0] == DOWN]

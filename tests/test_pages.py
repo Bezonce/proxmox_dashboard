@@ -3,7 +3,7 @@
 import pytest
 from streamlit.testing.v1 import AppTest
 
-from services import health, media, pihole, proxmox
+from services import health, media, pihole, proxmox, torrent
 from services.registry import SERVICES
 from tests import fixtures
 
@@ -20,6 +20,7 @@ FETCHERS = {
     (media, "jellyseerr"): fixtures.JELLYSEERR,
     (media, "immich"): fixtures.IMMICH,
     (pihole, "stats"): fixtures.PIHOLE,
+    (torrent, "disk"): fixtures.TORRENT_DISK,
 }
 
 
@@ -63,3 +64,10 @@ def test_service_names_are_escaped(monkeypatch):
     app = _run("pages/media.py")
     html = "".join(block.body for block in app.markdown)
     assert "Pilot &lt;b&gt;" in html and "Pilot <b>" not in html
+
+
+def test_home_shows_torrent_disk(monkeypatch):
+    _patch(monkeypatch, healthy=True)
+    app = _run("pages/home.py")
+    html = "".join(block.body for block in app.markdown)
+    assert "2.4 TB free" in html and "64 torrents" in html
